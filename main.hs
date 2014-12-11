@@ -4,7 +4,7 @@ import Control.Monad
 import System.Process (runCommand, waitForProcess)
 import Data.Char
 import System.Console.ANSI
-import System.Console.Haskeline
+import System.Console.Haskeline (Completion, InputT, Settings, completeWord, defaultSettings, getInputLine, runInputT, setComplete, simpleCompletion)
 import System.Directory
 import System.IO
 import Control.Monad.State.Strict
@@ -52,14 +52,14 @@ main = runInputT hlSettings loop
 
 ideCommands :: M.Map String ([String] -> IO ())
 ideCommands = M.fromList [
-        ("help", ideHelp),
-        ("init", ideInitLanguageString),
-        ("list", ideList),
-        ("tag", \_ -> return ()),
-        ("make", ideMake),
-        ("edit", ideEdit),
-        ("run", ideRun),
-        ("delete", ideDeleteProject)
+        ("help",    ideHelp),
+        ("init",    ideInitLanguageString),
+        ("list",    ideList),
+        ("tag",     ideTag),
+        ("make",    ideMake),
+        ("edit",    ideEdit),
+        ("run",     ideRun),
+        ("delete",  ideDeleteProject)
     ]
 
 ideCommand :: [String] -> IO ()
@@ -74,7 +74,7 @@ ideHelp _ = putStrLn $ unlines [
         "   help:   outputs this help list",
         "   init:   initialized a project",
         "   list:   lists the files in a project",
---         "   tag:    does stuff with tags",
+        "   tag:    creates tags file",
         "   make:   compiles the project",
         "   edit:   opens the file in an editor",
         "   run:    runs the project's executable",
@@ -125,6 +125,12 @@ ideList _ = do
         Just Python -> getRecursivePythonFiles >>= putStr . unlines
         _ -> getRecursiveCodeFiles >>= putStr . unlines
 
+
+-- tag files in a project
+ideTag :: [String] -> IO()
+ideTag _ = ideRunCommand "hasktags" ["--ignore-close-implementation", "--ctags", "."]
+    
+
 -- make a project
 ideMake :: [String] -> IO()
 ideMake _ = do
@@ -133,6 +139,7 @@ ideMake _ = do
         Just Haskell -> ideMakeHaskell
         Just Python -> ideCompilePython
         _ -> return ()
+
 
 -- edit a file
 ideEdit :: [String] -> IO()
