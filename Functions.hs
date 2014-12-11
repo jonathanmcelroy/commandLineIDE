@@ -1,10 +1,10 @@
 module Functions where
 
+import Control.Monad
 import System.Directory
+import System.FilePath
 import System.FilePath.Find
 import System.Process
-import Control.Monad
-import System.FilePath
 
 import Languages
 

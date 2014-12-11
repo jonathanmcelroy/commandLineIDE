@@ -1,14 +1,15 @@
 {-# LANGUAGE DoAndIfThenElse #-}
 
-import Control.Monad
-import System.Process (runCommand, waitForProcess)
-import Data.Char
-import System.Console.ANSI
-import System.Console.Haskeline (Completion, InputT, Settings, completeWord, defaultSettings, getInputLine, runInputT, setComplete, simpleCompletion)
-import System.Directory
-import System.IO
-import Control.Monad.State.Strict
+import Control.Monad (liftM, void, when)
+import Control.Monad.State.Strict (lift)
+import Data.Char (toLower)
 import Data.List (isPrefixOf)
+import System.Console.ANSI (Color(Green, Red), ColorIntensity(Vivid), ConsoleLayer(Foreground), SGR(Reset, SetColor), setSGR)
+import System.Console.Haskeline (Completion, InputT, Settings, completeWordWithPrev, defaultSettings, getInputLine, runInputT, setComplete, simpleCompletion)
+import System.Directory (doesFileExist, removeFile)
+import System.Directory (getDirectoryContents, getCurrentDirectory)
+import System.IO (hFlush, stdout)
+import System.Process (runCommand, waitForProcess)
 import qualified Data.Map as M
 
 import Functions
@@ -18,20 +19,17 @@ import Haskell
 import Latex
 import Python
 
-{-main :: IO ((), Namespace)-}
-{-main = runStateT (runInputT hlSettings repl) []-}
-{-[>main = do<]-}
-    {-[>setRed<]-}
-    {-[>printPrompt<]-}
-    {-[>s <- getContents<]-}
-    {-[>_ <- mapM ide $ takeWhile (`notElem` exitCommands) $ lines s<]-}
-    {-[>colorReset<]-}
-
-findCompletion :: String -> IO [Completion]
-findCompletion s = return $ map simpleCompletion $ filter (s `isPrefixOf`) (M.keys ideCommands)
+findCompletion :: String -> String -> IO [Completion]
+-- match "edit "
+-- TODO: only look for tracked files and maybe source files
+findCompletion " tide" s = do
+    dir <- getDirectoryContents =<< getCurrentDirectory
+    return $ map simpleCompletion $ filter (s `isPrefixOf`) dir
+-- match on commands
+findCompletion _ s = return $ map simpleCompletion $ filter (s `isPrefixOf`) (M.keys ideCommands)
 
 hlSettings :: Settings IO
-hlSettings = setComplete (completeWord Nothing " \t" findCompletion) defaultSettings
+hlSettings = setComplete (completeWordWithPrev Nothing " \t" findCompletion) defaultSettings
 
 main :: IO ()
 main = runInputT hlSettings loop
@@ -129,7 +127,7 @@ ideList _ = do
 -- tag files in a project
 ideTag :: [String] -> IO()
 ideTag _ = ideRunCommand "hasktags" ["--ignore-close-implementation", "--ctags", "."]
-    
+
 
 -- make a project
 ideMake :: [String] -> IO()
