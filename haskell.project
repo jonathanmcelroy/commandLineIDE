@@ -1,0 +1,4 @@
+{
+    "Compile": "ghc % -odir obj -hidir obj -o %"
+    "Make": "ghc % --make -odir obj -hidir obj -o %"
+}
