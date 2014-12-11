@@ -78,7 +78,7 @@ ideHelp _ = putStrLn $ unlines [
         "   make:   compiles the project",
         "   edit:   opens the file in an editor",
         "   run:    runs the project's executable",
-        "   delete: deletes the project (keeps the files"
+        "   delete: deletes the project (keeps the files)"
     ]
 
 {-ideCommand [] = return ()-}
