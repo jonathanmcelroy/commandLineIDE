@@ -10,12 +10,13 @@ import System.IO
 
 import Functions
 
+-- TODO: make this configurable
 -- initiate a haskell project
 ideInitHaskell :: IO ()
 ideInitHaskell = do
     exists <- projectExists
     if exists then
-        putStrLn "Project already exists"
+        error "Project already exists"
     else do
         thisDirectory <- getCurrentDirectory
         files <- getDirectoryContents thisDirectory

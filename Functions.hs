@@ -12,18 +12,22 @@ import Languages
 ideRunCommand :: String -> [String] -> IO ()
 ideRunCommand command args = runProcess command args Nothing Nothing Nothing Nothing Nothing >>= waitForProcess >> return ()
 
+-------------------------------------------------------------------------------
+-- IDE state
+-------------------------------------------------------------------------------
+type IDEState = (Maybe Language, [FilePath])
+
+
 -- .project file methods
 projectExists :: IO Bool
-projectExists = do
-    dir <- getDirectoryContents =<< getCurrentDirectory
-    return $ ".project" `elem` dir
+projectExists = doesFileExist ".project"
 
-getProjectAttributes :: IO (Maybe Language, [FilePath])
+getProjectAttributes :: IO IDEState
 getProjectAttributes = do
     proj <- projectExists
     if proj then readFile ".project" >>= return . getAttributesFromLines . map words . lines else return (Nothing, [])
 
-getAttributesFromLines :: [[String]] -> (Maybe Language, [FilePath])
+getAttributesFromLines :: [[String]] -> IDEState
 getAttributesFromLines [] = (Nothing, [])
 getAttributesFromLines (["Type:", projType] : others) = (getLanguage projType, snd $ getAttributesFromLines others)
 getAttributesFromLines (["Files:", files] : others) = (fst (getAttributesFromLines others), read files)
