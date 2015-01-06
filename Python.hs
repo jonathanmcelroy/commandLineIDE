@@ -10,11 +10,12 @@ import System.IO
 import Functions
 
 -- initiate a haskell project
-ideInitPython :: IO ()
-ideInitPython = do
+ideInitPython :: IDEState -> IO (IDEState)
+ideInitPython state = do
     exists <- projectExists
-    if exists then
+    if exists then do
         putStrLn "Project already exists"
+        return state
     else do
         thisDirectory <- getCurrentDirectory
         withFile ".project" WriteMode (\file -> do
@@ -22,6 +23,7 @@ ideInitPython = do
             pythonFiles <- getRecursivePythonFiles
             hPutStrLn file $ "Files: " ++ show (map (makeRelative thisDirectory) pythonFiles)
             )
+        return state
 
 -- get all the haskell files in the current and subdirectories
 getRecursivePythonFiles :: IO [FilePath]

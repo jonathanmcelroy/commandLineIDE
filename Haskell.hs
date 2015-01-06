@@ -12,20 +12,21 @@ import Functions
 
 -- TODO: make this configurable
 -- initiate a haskell project
-ideInitHaskell :: IO ()
-ideInitHaskell = do
+ideInitHaskell :: IDEState -> IO (IDEState)
+ideInitHaskell state = do
     exists <- projectExists
-    if exists then
+    if exists then do
         error "Project already exists"
+        return state
     else do
         thisDirectory <- getCurrentDirectory
         files <- getDirectoryContents thisDirectory
         unless (any ((".cabal"==) . takeExtension) files) $ ideRunCommand "cabal" ["init"]
-        withFile ".project" WriteMode (\file -> do
+        withFile ".project" WriteMode $ \file -> do
             hPutStrLn file "Type: haskell"
             haskFiles <- getRecursiveHaskellFiles
             hPutStrLn file $ "Files: " ++ show (map (makeRelative thisDirectory) haskFiles)
-            )
+        return state
 
 -- get all the haskell files in the current and subdirectories
 getRecursiveHaskellFiles :: IO [FilePath]

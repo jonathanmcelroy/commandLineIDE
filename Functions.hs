@@ -1,10 +1,11 @@
 module Functions where
 
-import Control.Monad
-import System.Directory
-import System.FilePath
-import System.FilePath.Find
-import System.Process
+import Control.Monad (liftM)
+import System.Directory (doesFileExist, getCurrentDirectory)
+import System.FilePath (makeRelative)
+import System.FilePath.Find (find, always, extension, (==?), (||?))
+import System.Process (runProcess, waitForProcess)
+import System.IO.Strict (readFile)
 
 import Languages
 
@@ -18,14 +19,20 @@ ideRunCommand command args = runProcess command args Nothing Nothing Nothing Not
 type IDEState = (Maybe Language, [FilePath])
 
 
+------------------------
 -- .project file methods
+------------------------
+
 projectExists :: IO Bool
 projectExists = doesFileExist ".project"
 
 getProjectAttributes :: IO IDEState
 getProjectAttributes = do
     proj <- projectExists
-    if proj then readFile ".project" >>= return . getAttributesFromLines . map words . lines else return (Nothing, [])
+    if proj then do
+        contents <- System.IO.Strict.readFile ".project"
+        return $ getAttributesFromLines $ map words $ lines contents
+    else return (Nothing, [])
 
 getAttributesFromLines :: [[String]] -> IDEState
 getAttributesFromLines [] = (Nothing, [])
@@ -34,6 +41,7 @@ getAttributesFromLines (["Files:", files] : others) = (fst (getAttributesFromLin
 getAttributesFromLines (_ : others) = getAttributesFromLines others
 
 -- code file methods
+-- TODO: make this extentionable
 getRecursiveCodeFiles :: IO [FilePath]
 getRecursiveCodeFiles = do
     thisDirectory <- getCurrentDirectory
