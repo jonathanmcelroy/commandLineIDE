@@ -24,7 +24,6 @@ main = do
     firstState <- getProjectAttributes
     let loop :: IDEState -> InputT IO ()
         loop state = do
-            -- set the color to red
             lift setRed
             lift $ printPrompt state
             minput <- getInputLine ""
@@ -34,7 +33,7 @@ main = do
                 Just input -> do
                     newState <- lift (ideCommand (words input) state)
                     loop newState
-    runInputT hlSettings $ loop firstState
+    runInputT ideSettings $ loop firstState
 
 
 -------------------------------------------------------------------------------
@@ -42,13 +41,16 @@ main = do
 -------------------------------------------------------------------------------
 
 -- The settings to use for the shell
-hlSettings :: Settings IO
-hlSettings = setComplete (completeWordWithPrev Nothing " \t" findCompletion)
+ideSettings :: Settings IO
+ideSettings = setComplete (completeWordWithPrev Nothing " \t" findCompletion)
     defaultSettings
 
 
 -- Complete command line commands
 findCompletion :: String -> String -> IO [Completion]
+-- TODO: list all possible languages
+-- match "init "
+findCompletion " tini" s = return $ map simpleCompletion $ filter (s `isPrefixOf`) ["haskell", "python"]
 -- TODO: only look for tracked files and maybe all source files in directory
 -- tree
 -- match "edit "
@@ -58,6 +60,7 @@ findCompletion " tide" s = do
 -- match on commands
 findCompletion _ s = return $ map simpleCompletion $ filter (s `isPrefixOf`)
     (M.keys ideCommands)
+
 
 -- substitute an equivalent command string using the default command name
 commandSubstitute :: String -> String
@@ -73,6 +76,7 @@ commandSubstitute s = result
 -- substitute an equivalent command name with the default name
 wordSubstitute :: String -> String
 wordSubstitute "ls" = "list"
+wordSubstitute "e" = "edit"
 wordSubstitute s = s
 
 -- the list of exist commands

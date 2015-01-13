@@ -17,14 +17,15 @@ import Python
 -- the mapping from command names to functions
 ideCommands :: M.Map String ([String] -> IDEState -> IO (IDEState))
 ideCommands = M.fromList [
+        ("add",     ideAdd),
+        ("delete",  ideDeleteProject),
+        ("edit",    ideEdit),
         ("help",    ideHelp),
         ("init",    ideInitLanguageString),
         ("list",    ideList),
-        ("tag",     ideTag),
         ("make",    ideMake),
-        ("edit",    ideEdit),
         ("run",     ideRun),
-        ("delete",  ideDeleteProject)
+        ("tag",     ideTag)
     ]
 
 
@@ -41,8 +42,20 @@ ideCommand (command:args) state =
         Just value -> value args state
 ideCommand [] state = return state
 
+---------------------------
+-- add files to the project
+---------------------------
+
+ideAdd :: [String] -> IDEState -> IO (IDEState)
+ideAdd ("files":newFiles) (maybeLanguage, files) = do
+    return (maybeLanguage, files ++ newFiles)
+ideAdd _ state = printError (unlines [
+        "Usage:",
+        "   add files *:  adds the given files to the project"
+    ]) >> return state
+
 -------------------------
--- print the help massage
+-- print the help message
 -------------------------
 ideHelp :: [String] -> IDEState -> IO (IDEState)
 ideHelp _ state = putStrLn (unlines [
@@ -140,6 +153,7 @@ ideMake _ state = do
 ideEdit :: [String] -> IDEState -> IO(IDEState)
 ideEdit []        state = putStrLn "You must specify a file to open" >> return state
 ideEdit filenames state = ideRunCommand "nvim" filenames >> return state
+-- ideEdit filenames state = ideRunCommand "yi" ("--as=vim":filenames) >> return state
 
 -----------------------------
 -- run the project executable

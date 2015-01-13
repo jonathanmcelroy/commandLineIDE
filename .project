@@ -1,2 +1,2 @@
 Type: haskell
-Files: ["Functions.hs","Haskell.hs","IDECommands.hs","Languages.hs","Latex.hs","Print.hs","Python.hs","Setup.hs","main.hs"]
+Files: ["Functions.hs","Haskell.hs","IDECommands.hs","Languages.hs","Latex.hs","Print.hs","Python.hs","Setup.hs","dist/build/autogen/Paths_commandLineIDE.hs","main.hs"]
